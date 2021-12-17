@@ -10,6 +10,18 @@ char** split_line(char*line, int read)
     char * temp_w;//palabra actual que estamos construyendo
     char** list_ws;//lista de palabras
     
+    //////////Agregar aqui si la entrada no empieza con ' ' guardar la linea en history/////////
+
+    if(line[0]=='#')
+    {
+        read=0;
+        list_ws=malloc(sizeof(char*));
+        return list_ws;
+    }
+    else
+    {
+        strtok(line,"#");                  //quitamos el comentario de la linea a analizar
+    }
 
     for (size_t i = 0; i < read; i++)         //recorrido para contar la cantidad de palabras
     {
@@ -22,6 +34,7 @@ char** split_line(char*line, int read)
             }
         }
     }   
+
 
     list_ws = malloc((count_w + 1)*sizeof(char*));
 
@@ -40,8 +53,7 @@ command_t** command_list(char*line, int read)
 {
     
     char** list_ws=split_line(line,read);//lista de palabras con split() hecho
-
-   
+    
     int command_count = 1;               //cantidad de comandos que tendra la lista de comandos
     int pos = 0;                         //posiscion actual en el recorrido por la lista de comandos
     while(list_ws[pos]!=NULL)            //recorrido para contar la cantidad de comandos
@@ -54,6 +66,10 @@ command_t** command_list(char*line, int read)
     }
 
     command_t** command_list = malloc((command_count + 1)*sizeof(command_t*));//arreglo donde se almacenan todos los comandos
+    if(list_ws[0]==NULL)
+    {
+        return command_list;
+    }
 
     int command_arguments[command_count]; //arreglo donde se almacenara la cantidad de argumentos de cada comando
     command_arguments[0]=1;
@@ -123,6 +139,11 @@ command_t** command_list(char*line, int read)
             current_arg++;
             pos++;
         }
+    }
+
+    if(command_list[0]==NULL){
+        printf("????");
+        exit(0);
     }
     
     return command_list;
