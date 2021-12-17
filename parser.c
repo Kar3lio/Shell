@@ -11,7 +11,7 @@ char** split_line(char*line, int read)
     char** list_ws;//lista de palabras
     
 
-    for (size_t i = 0; i < read; i++)
+    for (size_t i = 0; i < read; i++)         //recorrido para contar la cantidad de palabras
     {
         if (line[i] == ' ')
         {
@@ -27,87 +27,105 @@ char** split_line(char*line, int read)
 
     char *ch;
     ch=strtok(line," ");
-    list_ws[0]=ch;
-    for (size_t i = 1; i < count_w; i++)
+    list_ws[0] = ch;
+    for (size_t i = 1; i < count_w; i++)     //recorrido para separar las palabras
     {
-        ch=strtok(NULL," ,");
-        list_ws[i]=ch;
+        ch = strtok(NULL," ,");
+        list_ws[i] = ch;
     }
     
     return list_ws;
 }
 command_t** command_list(char*line, int read)
 {
+    
     char** list_ws=split_line(line,read);//lista de palabras con split() hecho
 
    
     int command_count = 1;               //cantidad de comandos que tendra la lista de comandos
     int pos = 0;                         //posiscion actual en el recorrido por la lista de comandos
-    while(list_ws[pos]!=NULL)
+    while(list_ws[pos]!=NULL)            //recorrido para contar la cantidad de comandos
     {
-        if(!(strcmp(list_ws[pos],"<") && strcmp(list_ws[pos],">") && strcmp(list_ws[pos],"|") && strcmp(list_ws[pos],">>")))
+        if(!(strcmp(list_ws[pos],"|")))
         {
             command_count++;
         }
         pos++;
     }
 
-    command_t** command_list = malloc((command_count + 1)*sizeof(command_t*));
+    command_t** command_list = malloc((command_count + 1)*sizeof(command_t*));//arreglo donde se almacenan todos los comandos
 
-    pos=1;
-    int last_command_pos=0;
-    int current_count = 0;
-    char** args;
+    int command_arguments[command_count]; //arreglo donde se almacenara la cantidad de argumentos de cada comando
+    command_arguments[0]=1;
+    pos = 1;                              //se reinicia la variable pos para realizar otro recorrido a la lista de palabras
+    int current_count = 0;                //numero del comando actual
     command_t* current = malloc(sizeof(command_t));      //comando que estamos construyendo
-    while(list_ws[pos]!=NULL)
-    {
-        if(!(strcmp(list_ws[pos],"<") && strcmp(list_ws[pos],">") && strcmp(list_ws[pos],"|") && strcmp(list_ws[pos],">>")))
+    command_list[0]=current;
+    while (list_ws[pos]!=NULL)            //recorrido donde se almacenara la cantidad de argumentos y se actualizaran 
+    {                                     //las propiedades ld,gd,qqd y pipe_coming que tiene cada comando
+        if(!(strcmp(list_ws[pos],"<")))
         {
-            args = malloc((pos-last_command_pos + 1)*sizeof(char*));
-            for (size_t i = last_command_pos; i < pos; i++)
-            {
-                args[i-last_command_pos]=list_ws[i];
-            }
-            current->args = args;
-
-            if(!(strcmp(list_ws[pos],"<")))
-            {
-                current->ld=list_ws[pos];
-                pos+=2;
-            }
-            else if(!(strcmp(list_ws[pos],">")))
-            {
-                current->gd=list_ws[pos];
-                pos+=2;
-            }
-            else if(!(strcmp(list_ws[pos],">>")))
-            {
-                current->qqd=list_ws[pos];
-                pos+=2;
-            }
-            if((strcmp(list_ws[pos],"|")))
-            {
-                current->pipe_coming = 1;
-            }
-
-            command_list[current_count]=current;
-            current_count++;
-            current = malloc(sizeof(command_t));
-            last_command_pos = pos+1;   
+            current->ld=list_ws[pos+1];
+            pos+=2;
         }
-        pos++;        
+        else if(!(strcmp(list_ws[pos],">")))
+        {
+            current->gd=list_ws[pos+1];
+            pos+=2;
+        }
+        else if(!(strcmp(list_ws[pos],">>")))
+        {
+            current->qqd=list_ws[pos+1];
+            pos+=2;
+        }
+        else if((strcmp(list_ws[pos],"|") == 0))
+        {
+            current->pipe_coming = 1;
+            current = malloc(sizeof(command_t));
+            current_count++;
+            command_list[current_count]=current;
+            pos+=2;
+            command_arguments[current_count]=1;         //se inicializan todos comandos con argumento 1 porque tienen al menos
+        }                                               //a ellos mismos como argumento
+        else
+        {
+            command_arguments[current_count]++;
+            pos++;
+        }
     }
-    args = malloc((pos-last_command_pos + 1)*sizeof(char*));
-    for (size_t i = last_command_pos; i < pos; i++)
-    {
-        args[i-last_command_pos]=list_ws[i];
-    }
-    current->args = args;
-    command_list[current_count]=current;
-    current_count++;
-        
-    return command_list;
 
+    current=command_list[0];
+    current_count=0;                             //reiniciamos la variable para almacenar en ella el numero del comando actual
+    current->args=malloc((command_arguments[0] + 1)*sizeof(char *));
+    current->args[0]=list_ws[0];
+    pos = 1;
+    int current_arg=1;                          //numero del argumento actual
+    while(list_ws[pos]!=NULL)                   //recorrido donde cada comando adquire sus argumentos
+    {
+        if(!(strcmp(list_ws[pos],"|")))
+        {
+            
+            current_count++;
+            current=command_list[current_count];
+            current->args = malloc((command_arguments[current_count] + 1)*sizeof(char *));
+            current->args[0]=list_ws[pos+1];
+            current_arg=1;
+            pos+=2;
+            
+        }
+        else if(!(strcmp(list_ws[pos],"<") && strcmp(list_ws[pos],">") && strcmp(list_ws[pos],">>")))
+        {
+            pos+=2;
+        }
+        else
+        {
+            current->args[current_arg]=list_ws[pos];
+            current_arg++;
+            pos++;
+        }
+    }
+    
+    return command_list;
 }
 
 

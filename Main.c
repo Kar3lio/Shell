@@ -30,10 +30,11 @@ int main(int argc, char const *argv[])
             int arg_pos=0;
             while (current->args[arg_pos]!=NULL)
             {
-                printf("%s\n",current->args[arg_pos]);
+                printf("%s ",current->args[arg_pos]);
                 arg_pos++;
             }
             pos++;
+            printf("\n");
         }
         
         printf("End");
