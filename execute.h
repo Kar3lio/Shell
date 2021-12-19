@@ -3,6 +3,6 @@
 
 #include "command.h"
 
-int execute(commandptr command);
+int execute(command_t** command);
 
 #endif 

@@ -18,10 +18,10 @@ char** split_line(char*line, int read)
         list_ws=malloc(sizeof(char*));
         return list_ws;
     }
-    else
+    /*else
     {
         strtok(line,"#");                  //quitamos el comentario de la linea a analizar
-    }
+    }*/
 
     for (size_t i = 0; i < read; i++)         //recorrido para contar la cantidad de palabras
     {
@@ -33,17 +33,25 @@ char** split_line(char*line, int read)
                 i++;
             }
         }
+        else if(line[i] == '#')
+        {
+            if(line[i-1]==' ')
+            {
+                count_w--;
+            }
+            break;
+        }
     }   
 
 
     list_ws = malloc((count_w + 1)*sizeof(char*));
 
     char *ch;
-    ch=strtok(line," ");
+    ch=strtok(line," \n\t");
     list_ws[0] = ch;
     for (size_t i = 1; i < count_w; i++)     //recorrido para separar las palabras
     {
-        ch = strtok(NULL," ,");
+        ch = strtok(NULL," \n\t");
         list_ws[i] = ch;
     }
     

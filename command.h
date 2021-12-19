@@ -3,7 +3,6 @@
 
 typedef struct command
 {
-    int isbuiltin;
     char** args;
     char** flags;
 
