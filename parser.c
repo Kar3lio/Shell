@@ -33,6 +33,18 @@ char** split_line(char*line, int read)
                 i++;
             }
         }
+        else if(line[i] == ';')
+        {
+            count_w++;
+            if((i-1) >= 0 && line[i] == ' ')
+            {
+                count_w--;
+            }
+            if(line[i+1] < read && line[i+1] == ' ')
+            {
+                count_w--;
+            }
+        }
         else if(line[i] == '#')
         {
             if(line[i-1]==' ')
@@ -54,14 +66,14 @@ char** split_line(char*line, int read)
         ch = strtok(NULL," \n\t");
         list_ws[i] = ch;
     }
-    
+
     return list_ws;
 }
 command_t** command_list(char*line, int read)
 {
     
     char** list_ws=split_line(line,read);//lista de palabras con split() hecho
-    
+
     int command_count = 1;               //cantidad de comandos que tendra la lista de comandos
     int pos = 0;                         //posiscion actual en el recorrido por la lista de comandos
     while(list_ws[pos]!=NULL)            //recorrido para contar la cantidad de comandos
@@ -101,6 +113,8 @@ command_t** command_list(char*line, int read)
         {
             current->qqd=list_ws[pos+1];
             pos+=2;
+        
+        
         }
         else if((strcmp(list_ws[pos],"|") == 0))
         {
@@ -111,6 +125,15 @@ command_t** command_list(char*line, int read)
             pos+=2;
             command_arguments[current_count]=1;         //se inicializan todos comandos con argumento 1 porque tienen al menos
         }                                               //a ellos mismos como argumento
+        else if ((strcmp(list_ws[pos],";") == 0))
+        {
+            current = malloc(sizeof(command_t));
+            current_count++;
+            command_list[current_count]=current;
+            pos+=2;
+            command_arguments[current_count]=1; 
+        }
+                                                       
         else
         {
             command_arguments[current_count]++;
@@ -126,7 +149,7 @@ command_t** command_list(char*line, int read)
     int current_arg=1;                          //numero del argumento actual
     while(list_ws[pos]!=NULL)                   //recorrido donde cada comando adquire sus argumentos
     {
-        if(!(strcmp(list_ws[pos],"|")))
+        if(!(strcmp(list_ws[pos],"|")) || !(strcmp(list_ws[pos],";")))
         {
             
             current_count++;
@@ -147,11 +170,6 @@ command_t** command_list(char*line, int read)
             current_arg++;
             pos++;
         }
-    }
-
-    if(command_list[0]==NULL){
-        printf("????");
-        exit(0);
     }
     
     return command_list;
