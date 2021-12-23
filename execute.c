@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "execute.h"
+#include "parser.h"
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -95,12 +96,17 @@ int exec_builtin(command_t* command)
 
 int execute(command_t** commands)
 {
-    int fd[2];
-    /*if(pipe(fd) == -1)
+    int pos = 1;
+    int pipes_count = 0;
+    while (commands[pos]!=NULL)
     {
-        printf("Pipeling Error");
-        return 1;
-    }*/
+        pipes_count++;
+        pos++;
+    }
+    
+    int fd_old[2];
+    int fd_new[2];
+
     int i = 0;
     while (commands[i] != NULL)
     {        
@@ -110,6 +116,10 @@ int execute(command_t** commands)
         }
         else
         {
+            if(i<pipes_count)
+            {
+                pipe(fd_new);
+            }
             command_t* current = malloc(sizeof(command_t));
             current = commands[i];
             int pid = fork();
@@ -153,21 +163,19 @@ int execute(command_t** commands)
                     dup2(file, STDOUT_FILENO);
                     close(file);
                 }
-                if(fd[0] != -1)
+                
+                if(i > 0)
                 {
-                    dup2(fd[0], STDIN_FILENO);
-                    close(fd[0]);
+                    dup2(fd_old[0],STDIN_FILENO);
+                    close(fd_old[0]);
+                    close(fd_old[1]);
                 }
-                if(current->pipe_coming != 0)
+                if(i < pipes_count)
                 {
-                    dup2(fd[1], STDOUT_FILENO);
-                    close(fd[1]);
+                    close(fd_new[0]);
+                    dup2(fd_new[1],STDOUT_FILENO);
+                    close(fd_new[1]);
                 }
-                else
-                {
-                    fd[0]=-1;
-                }
-
                 int error = execvp(current->args[0],current->args);
                 if(error == -1)
                 {
@@ -177,19 +185,24 @@ int execute(command_t** commands)
             }
             else        //Proceso padre
             {
-                int wstatus;
-                wait(&wstatus);
-                /*if (WIFEXITED(wstatus))
+                if(i > 0)
                 {
-                    int status_code = WIFEXITED(wstatus);
-                    if(status_code == 0)
-                    {
-                        return status_code;
-                    }
-                }*/
+                    close(fd_old[0]);
+                    close(fd_old[1]);
+                }
+                if(i<pipes_count)
+                {
+                    fd_old[0] = fd_new[0];
+                    fd_old[1] = fd_new[1];
+                }
             }
         }
         i++;
     }
-    return 0;
+    for (size_t j = 0; j < i; j++)
+    {
+        wait(NULL);
+    }  
+
+    return 1;
 }
