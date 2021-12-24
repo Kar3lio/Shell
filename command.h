@@ -6,7 +6,8 @@ typedef struct command
     char** args;
     char** flags;
 
-    int pipe_coming;
+    int before_pipe;
+    int after_pipe;
     char* gd;
     char* ld;
     char * qqd;

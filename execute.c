@@ -11,13 +11,13 @@
 int is_builtin(command_t* command)
 {
     return !(strcmp(command->args[0], "cd")&&strcmp(command->args[0],"help")
-            &&strcmp(command->args[0],"exit"));
+            &&strcmp(command->args[0],"exit")&&strcmp(command->args[0],"true")
+            &&strcmp(command->args[0],"false"));
 }
 
 int exec_cd(char* new_path)
 {
     int a = chdir(new_path);
-    printf("%d\n",a);
     if (a!=0)
     {
         printf("cd: ");
@@ -30,10 +30,9 @@ int exec_help(char* command)
 {
     printf("Se ejecutó help\n");
 }
-int exec_exit()//cuando se hace exit hay que guardar el history del shell
+int exec_exit()
 {
-    exit(-1);
-    return 1;
+    exit(0);
 }
 int exec_history()
 {
@@ -70,6 +69,14 @@ int exec_again(int hist_num)
     execute(comm_list);
     
 }
+int exec_true()
+{
+    return 0;
+}
+int exec_false()
+{
+    return 1;
+}
 
 int exec_builtin(command_t* command)
 {
@@ -78,19 +85,28 @@ int exec_builtin(command_t* command)
     int exc = 0;
     if (strcmp(name,"cd")==0)
     {
-        printf("se va a ejecutar cd\n");
         exc = exec_cd(command->args[1]);
+        return exc;
     }
     if (strcmp(name,"help")==0)
     {
         exc = exec_help(command->args[1]);
-        //printf("es help\n");
-
+        return exc;
     }
     if (strcmp(name,"exit")==0)
     {
-        //printf("es exit\n");
         exc = exec_exit();
+        return exc;
+    }
+    if(strcmp(name,"true")==0)
+    {
+        exc = exec_true();
+        return exc;
+    }
+    if(strcmp(name,"false")==0)
+    {
+        exc = exec_false();
+        return exc;
     }
 }
 
@@ -109,10 +125,11 @@ int execute(command_t** commands)
 
     int i = 0;
     while (commands[i] != NULL)
-    {        
+    { 
+        int exstatus;       
         if (is_builtin(commands[i]))
         {
-            exec_builtin(commands[i]);
+            exstatus = exec_builtin(commands[i]);
         }
         else
         {
@@ -125,7 +142,7 @@ int execute(command_t** commands)
             int pid = fork();
             if(pid == -1)
             {
-                printf("Process Fork error");
+                perror("Process Fork error");
                 return 2;
             }
             if(pid==0)   //Proceso hijo
@@ -164,13 +181,13 @@ int execute(command_t** commands)
                     close(file);
                 }
                 
-                if(i > 0)
+                if(current->after_pipe != 0)
                 {
                     dup2(fd_old[0],STDIN_FILENO);
                     close(fd_old[0]);
                     close(fd_old[1]);
                 }
-                if(i < pipes_count)
+                if(current->before_pipe != 0)
                 {
                     close(fd_new[0]);
                     dup2(fd_new[1],STDOUT_FILENO);
@@ -185,12 +202,12 @@ int execute(command_t** commands)
             }
             else        //Proceso padre
             {
-                if(i > 0)
+                if(current->after_pipe != 0)
                 {
                     close(fd_old[0]);
                     close(fd_old[1]);
                 }
-                if(i<pipes_count)
+                if(current->before_pipe != 0)
                 {
                     fd_old[0] = fd_new[0];
                     fd_old[1] = fd_new[1];
