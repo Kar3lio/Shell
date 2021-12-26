@@ -1,0 +1,51 @@
+ls
+pwd
+echo holaaaaaaaaaa
+ls;pwd
+ls --all
+ping -c 3 localhost
+echo helloooooooo
+ls | grep Main
+echo hiiiiiiiiiii
+echo marquesita
+echo cemento
+pwd
+echo holaaaaaaaaaa
+ls;pwd
+ls --all
+ping -c 3 localhost
+echo helloooooooo
+ls | grep Main
+ls --all
+ping -c 3 localhost
+ls;pwd
+ls;pwd
+pwd;echo ol
+pwd;echo ol
+ls
+ls | grep Main
+echo helloooooooo
+ls;pwd
+gyjgjg
+pwd
+ls
+exit
+exit
+pwd
+ls
+history
+history
+pwd;ls
+pwd;ls
+pwd;ls
+pwd;ls
+pwd;ls;echo hola
+echo hola|grep o|grep o
+ping -c 3|grep rtt
+ping -c 3 localhost|grep rtt
+false && pwd
+true && pwd
+false || pwd
+true || pwd
+true; false || pwd
+true;false;ls
