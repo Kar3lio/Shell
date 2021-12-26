@@ -113,6 +113,7 @@ char** split_line(char*line, int read)
 
     return list_ws;
 }
+
 command_t** command_list(char*line, int read)
 {
     
@@ -200,9 +201,3 @@ command_t** command_list(char*line, int read)
     
     return command_list;
 }
-
-
-
-
-
-

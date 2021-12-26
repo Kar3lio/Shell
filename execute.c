@@ -20,15 +20,14 @@ int exec_cd(char* new_path)
     int a = chdir(new_path);
     if (a!=0)
     {
-        printf("cd: ");
-        printf("%s",new_path);
-        printf(": Not such file or directory\n");
+        printf("cd: %s Not such file or directory\n",new_path);
     }
     return a;
 }
 int exec_help(char* command)
 {
     printf("Se ejecutó help\n");
+    return 0;
 }
 int exec_exit()
 {
@@ -123,10 +122,11 @@ int execute(command_t** commands)
     int fd_old[2];
     int fd_new[2];
 
+    int exstatus; 
     int i = 0;
     while (commands[i] != NULL)
     { 
-        int exstatus;       
+        command_t* test = commands[i]; 
         if (is_builtin(commands[i]))
         {
             exstatus = exec_builtin(commands[i]);
@@ -180,7 +180,6 @@ int execute(command_t** commands)
                     dup2(file, STDOUT_FILENO);
                     close(file);
                 }
-                
                 if(current->after_pipe != 0)
                 {
                     dup2(fd_old[0],STDIN_FILENO);
@@ -193,8 +192,8 @@ int execute(command_t** commands)
                     dup2(fd_new[1],STDOUT_FILENO);
                     close(fd_new[1]);
                 }
-                int error = execvp(current->args[0],current->args);
-                if(error == -1)
+                exstatus = execvp(current->args[0],current->args);
+                if(exstatus == -1)
                 {
                     printf("Could not find program to execute\n");
                     return 6;
@@ -221,5 +220,5 @@ int execute(command_t** commands)
         wait(NULL);
     }  
 
-    return 1;
+    return exstatus;
 }
