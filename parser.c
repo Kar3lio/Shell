@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "execute.h"
 
 int* is_command;                     //arreglo donde se almacenara si la i-esima palabra es un comando
 int command_count;                   //cantidad de comandos que tendra la lista de comandos
@@ -200,4 +201,78 @@ command_t** command_list(char*line, int read)
     }
     
     return command_list;
+}
+
+int And_Or_Split(char* ch)
+{
+    int last2 = 0;
+    for (size_t k = 0; k <= strlen(ch); k++)
+    {
+        if(k==strlen(ch))
+        {
+            char * temp = calloc(k-last2,sizeof(char));
+            for (size_t l = last2; l < k; l++)
+            {
+                temp[l-last2]=ch[l];
+            }
+            command_t **list_c = command_list(temp, strlen(temp));
+            execute(list_c);
+            free(temp);
+        }
+        else if((ch[k]=='&' && ch[k+1]=='&' && ch[k-1]==' ' && ch[k+2]==' '))
+        {
+            char * temp = calloc(k+1-last2,sizeof(char));
+            for (size_t l = last2; l < k; l++)
+            {
+                temp[l-last2]=ch[l];
+            }
+            command_t **list_c = command_list(temp, strlen(temp));
+            int exit_status = execute(list_c);
+            if(exit_status != 0)
+            {
+                return exit_status;
+            }
+            free(temp);
+            last2 = k + 2;
+        }
+        else if ((ch[k]=='|' && ch[k+1]=='|' && ch[k-1]==' ' && ch[k+2]==' '))
+        {
+            char * temp = calloc(k+1-last2,sizeof(char));
+            for (size_t l = last2; l < k; l++)
+            {
+                temp[l-last2]=ch[l];
+            }
+            command_t **list_c = command_list(temp, strlen(temp));
+            int exit_status = execute(list_c);
+            if(exit_status == 0)
+            {
+                return exit_status;
+            }
+            free(temp);
+            last2 = k + 2;
+        }
+        
+        
+    }
+    return 0;
+    
+}
+
+int Semicolon_Split(char* line, int read)
+{
+    int last = 0;
+    for (size_t i = 0; i < read; i++)
+    {
+        if(line[i]==';'|| line[i]=='\n')
+        {
+            char * ch=calloc((i+1-last),sizeof(char));
+            for (size_t j = last; j < i; j++)
+            {
+                ch[j-last]=line[j];
+            }
+            And_Or_Split(ch);
+            free(ch);
+            last = i+1;          
+        }
+    }
 }

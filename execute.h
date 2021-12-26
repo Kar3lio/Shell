@@ -5,7 +5,5 @@
 
 int execute(command_t** command);
 
-char** history;
-int count_hist;
 
 #endif 

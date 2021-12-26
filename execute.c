@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "execute.h"
-#include "parser.h"
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include "execute.h"
+#include "parser.h"
+#include "history.h"
 
 //comprueba si un comando es builtin
 int is_builtin(command_t* command)
 {
     return !(strcmp(command->args[0], "cd")&&strcmp(command->args[0],"help")
             &&strcmp(command->args[0],"exit")&&strcmp(command->args[0],"true")
-            &&strcmp(command->args[0],"false"));
+            &&strcmp(command->args[0],"false")&&strcmp(command->args[0],"history")
+            &&strcmp(command->args[0],"again"));
 }
 
 int exec_cd(char* new_path)
@@ -33,40 +35,26 @@ int exec_exit()
 {
     exit(0);
 }
-int exec_history()
+int exec_history(char * count_l)
 {
-    count_hist = count_hist%10;//encapsular esto en un metodo(se escribe 3 veces el mismo código)
-    history[count_hist] = "history";
-    count_hist++;//hasta aqui
-
-    for (size_t i = count_hist; i < 10; i++)
-    {
-        printf("%s",history[i]);
-    }
-    if (count_hist!=0)
-    {
-        for (size_t i = 0; i < count_hist; i++)
-        {
-            printf("%s",history[i]);
-        }
-    }
+    int exc = ReadLines(atoi(count_l));
+    return exc;
 }
-int exec_again(int hist_num)
+int exec_again(char * hist_num)
 {
-    hist_num = hist_num%10;
-    char*line = history[hist_num];
-
-    count_hist = count_hist%10;
-    history[count_hist] = line;
-    count_hist++;
-
-    int count_line = 0;
-    while (line[count_line] != 10)
-        count_line++;
-    
-    command_t** comm_list = command_list(line,count_line);
-    execute(comm_list);
-    
+    int n = atoi(hist_num);
+    int exc = -1;
+    if (0 < n && n < 11)
+    {
+        char* line = GetHistoryLine(10-n+1);
+        SaveLine(line);
+        exc = Semicolon_Split(line,(int)strlen(line));
+    }
+    else
+    {
+        printf("Argument Out of Range");
+    }
+    return exc;
 }
 int exec_true()
 {
@@ -85,28 +73,39 @@ int exec_builtin(command_t* command)
     if (strcmp(name,"cd")==0)
     {
         exc = exec_cd(command->args[1]);
-        return exc;
     }
     if (strcmp(name,"help")==0)
     {
         exc = exec_help(command->args[1]);
-        return exc;
     }
     if (strcmp(name,"exit")==0)
     {
         exc = exec_exit();
-        return exc;
     }
     if(strcmp(name,"true")==0)
     {
         exc = exec_true();
-        return exc;
     }
     if(strcmp(name,"false")==0)
     {
         exc = exec_false();
-        return exc;
     }
+    if(strcmp(name,"history")==0)
+    {
+        if (command->args[1]!=NULL)
+        {
+            exc = exec_history(command->args[1]);
+        }
+        else
+        {
+            exc = exec_history("10");
+        }
+    }
+    if(strcmp(name,"again")==0)
+    {
+        exc = exec_again(command->args[1]);
+    }
+    return exc;
 }
 
 int execute(command_t** commands)
