@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <limits.h>
 #include "execute.h"
 #include "parser.h"
 #include "history.h"
@@ -26,9 +27,40 @@ int exec_cd(char* new_path)
     }
     return a;
 }
-int exec_help(char* command)
+int exec_help(command_t* command)
 {
-    printf("Se ejecutó help\n");
+    char* help_arg = calloc(15,sizeof(char));
+    strcat(help_arg, "/");
+    if(command->args[1]!=NULL)
+    {
+        strcat(help_arg,command->args[1]);
+    }
+    else
+    {
+        help_arg = "/help";
+    }
+
+    char* full_path = calloc(PATH_MAX,sizeof(char));
+    strcat(full_path,path);
+    strcat(full_path,help_arg);
+    strcat(full_path,".txt");
+    char current[1000];
+    FILE* file = fopen(full_path,"r");
+    if(file==NULL)
+    {
+        printf("Not such file or directory\n");
+        return 7;
+    }
+    while(1)
+    {
+        fgets(current,999,file);
+        if(feof(file))
+        {
+            break;
+        }
+        printf("%s",current);
+    }
+    fclose(file);
     return 0;
 }
 int exec_exit()
@@ -76,7 +108,7 @@ int exec_builtin(command_t* command)
     }
     if (strcmp(name,"help")==0)
     {
-        exc = exec_help(command->args[1]);
+        exc = exec_help(command);
     }
     if (strcmp(name,"exit")==0)
     {

@@ -5,6 +5,7 @@
 #include "history.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
 
 
 int min(int a, int b)
@@ -14,21 +15,21 @@ int min(int a, int b)
 
 int SaveLine(char* line)
 {
-    //FILE* input_file = fopen(path,"a+");
-    //fputs(line,input_file);
-    //fputs("\n",input_file);
-    //int fd = fileno(input_file);
-    int fd = open(path,O_APPEND | O_WRONLY,0777);
+    char* history_path = calloc(PATH_MAX,sizeof(char));
+    strcat(history_path,path);
+    strcat(history_path,"/c_history.txt");
+    int fd = open(history_path,O_APPEND | O_WRONLY,0777);
     write(fd,line,strlen(line));
     close(fd);
-    //fclose(input_file);
     return 0;
 }
 
-//devuelve la linea ubicada count_l(partiendo del final) en el history
-char* GetHistoryLine(int count_l)
+char* GetHistoryLine(int count_l) //devuelve la linea ubicada count_l(partiendo del final) en el history
 {
-    FILE* input_file = fopen(path,"r");
+    char* history_path = calloc(PATH_MAX,sizeof(char));
+    strcat(history_path,path);
+    strcat(history_path,"c_/history.txt");
+    FILE* input_file = fopen(history_path,"r");
     fseek(input_file,0,SEEK_END);
 
     int count_cl = 0;
@@ -61,8 +62,10 @@ char* GetHistoryLine(int count_l)
 
 int ReadLines(int count_l)
 {
-    FILE* input_file = fopen(path,"r");
-    // //int fd = open(path,O_RDONLY,0777);
+    char* history_path = calloc(PATH_MAX,sizeof(char));
+    strcat(history_path,path);
+    strcat(history_path,"/c_history.txt");
+    FILE* input_file = fopen(history_path,"r");
     
     fseek(input_file,0,SEEK_END);
     
@@ -87,7 +90,6 @@ int ReadLines(int count_l)
     }
 
     char* current_line = malloc(100*sizeof(char));
-    // //char* current_line = calloc(100,sizeof(char));
     for (size_t i = 1; i <= min(count_cl,count_l); i++)
     {
         fgets(current_line,100,input_file);
@@ -97,18 +99,5 @@ int ReadLines(int count_l)
     int fd = fileno(input_file);
     close(fd);
     free(current_line);
-    //fclose(input_file);
     return 0;
 }
-
-// int main()
-// {
-//     SaveLine("abc");
-//     ReadLines(10);
-//     printf("***************\n");
-//     ReadLines(4);
-//     printf("***************\n");
-//     printf("%s",GetHistoryLine(19));
-//     SaveLine("fsdfsd");
-//     return 0;
-// }

@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
     int status = 1;
 
     path = malloc(PATH_MAX * sizeof(char));
-    realpath("resources/history.txt",path);
+    realpath("resources",path);
 
     while (status)
     {
